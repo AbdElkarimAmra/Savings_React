@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
+import Cookies from "js-cookie";
+import { Toaster } from "@/components/ui/sonner"
+import { toast } from "sonner"
 
 
 export default function Homepage() {
@@ -22,8 +25,9 @@ export default function Homepage() {
     password: "",
   });
 
-    function handleLogin(values) {
-        const res = fetch(import.meta.env.VITE_API_URL + "/api/auth/login", {
+    async function handleLogin(values) {
+        
+      const res = await fetch(import.meta.env.VITE_API_BASE_URL + "/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -31,10 +35,21 @@ export default function Homepage() {
                 password: values.password,
             }),
         });
+
+        if (res.ok) {
+        toast("Login successful!");
+        const data = await res.json();
+        Cookies.set("token", data.token);
+        // navigate("/options");  
+        }
+
+        if (!res.ok) {
+          toast("Login failed! Please chec your credentials and try again.");
+        }
+        
     }
   function onSubmit(value) {
     
-    console.log(value);
     handleLogin(value);
   }
 
@@ -98,6 +113,9 @@ export default function Homepage() {
           </CardFooter>
         </form>
       </Card>
+      <Toaster />
+      
+
     </main>
   );
 }
