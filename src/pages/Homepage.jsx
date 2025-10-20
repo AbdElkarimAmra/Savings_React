@@ -39,8 +39,9 @@ export default function Homepage() {
         if (res.ok) {
         toast("Login successful!");
         const data = await res.json();
-        Cookies.set("token", data.token);
-        // navigate("/options");  
+        console.log(data.accessToken); // data.token
+        Cookies.set("token", data.accessToken, { expires: 7 });
+        navigate("/userInfo");
         }
 
         if (!res.ok) {

@@ -1,121 +1,323 @@
-import React, { useState } from "react";
 
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 const INTAKE_API = `${API_BASE}/api/user-finances/intake`;
-
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
+import Cookies from "js-cookie";
+import { Navigate, useNavigate } from "react-router-dom";
 
 
 // Simplified MVP version — orange and white theme
 export default function UserInfo() {
-  const [formData, setFormData] = useState({
-    lastPaycheck: "",
-    currentBalance: "",
-    savedToGoal: "",
-    needs: "",
-    wants: "",
+  const navigate = useNavigate();
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      lastPaycheckCents: "",
+      currentBalanceCents: "",
+      savedToGoalCents: "",
+      needsMonthlyCents: "",
+      wantsMonthlyCents: "",
+      housingCents: "",
+      foodGroceriesCents: "",
+      transportCents: "",
+      utilitiesCents: "",
+      insuranceHealthCents: "",
+      personalShoppingCents: "",
+      entertainmentEatingOutCents: "",
+      subscriptionsCents: "",
+      miscFunCents: "",
+      emergencyShortTermCents: "",
+      longTermInvestingDebtCents: "",
+    },
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
-const toCents = v => Math.round(Number(v || 0) * 100);
+  async function onSubmit(values) {
+  console.log("User finances (frontend):", values);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const res = await fetch(INTAKE_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      lastPaycheckCents: toCents(formData.lastPaycheck),
-      currentBalanceCents: toCents(formData.currentBalance),
-      savedToGoalCents: toCents(formData.savedToGoal),
-      needsMonthlyCents: toCents(formData.needs),
-      wantsMonthlyCents: toCents(formData.wants),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || "Request failed");
-  alert("Saved!");
-};
+  const token = Cookies.get("token");
+  if (!token) {
+    toast.error("You must be logged in first.");
+    return;
+  }
+
+  try {
+    const res = await fetch(INTAKE_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(values),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Error response:", data);
+      toast.error(data?.message || "Something went wrong. Please try again.");
+      return;
+    }
+
+    toast.success("Your financial info has been saved successfully ✅");
+    console.log("RESPONSE:", data);
+    console.log("VALUES:", values);
+    console.log("TOKEN:", token);
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Fetch error:", err);
+    toast.error("Network error. Please try again later.");
+  }
+}
   
-  return (
-    <main className="min-h-screen bg-orange-950 text-white flex items-center justify-center p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-orange-900 p-6 rounded-2xl border border-orange-700 space-y-4 shadow-xl shadow-black/30"
-      >
-        <h1 className="text-2xl font-semibold text-center text-orange-100">
-          Let's set up your saving info 💸
-        </h1>
+   return (
+    <main className="min-h-screen bg-orange-50 flex items-center justify-center p-6">
+      <Card className="w-full max-w-md bg-white rounded-2xl shadow-lg border-0">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="space-y-6">
+            <div className="grid gap-2">
+              <Label htmlFor="lastPaycheckCents" className="text-gray-700">
+                Last Paycheck (Cents)
+              </Label>
+              <Input
+                {...register("lastPaycheckCents", { required: true })}
+                id="lastPaycheckCents"
+                type="number"
+                placeholder="e.g. 1120000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <InputField
-          label="Last Paycheck (after tax)"
-          name="lastPaycheck"
-          value={formData.lastPaycheck}
-          onChange={handleChange}
-          placeholder="e.g. 1800"
-        />
+            <div className="grid gap-2">
+              <Label htmlFor="currentBalanceCents" className="text-gray-700">
+                Current Balance (Cents)
+              </Label>
+              <Input
+                {...register("currentBalanceCents", { required: true })}
+                id="currentBalanceCents"
+                type="number"
+                placeholder="e.g. 50000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <InputField
-          label="Current Money Balance"
-          name="currentBalance"
-          value={formData.currentBalance}
-          onChange={handleChange}
-          placeholder="e.g. 500"
-        />
+            <div className="grid gap-2">
+              <Label htmlFor="savedToGoalCents" className="text-gray-700">
+                Saved to Goal (Cents)
+              </Label>
+              <Input
+                {...register("savedToGoalCents")}
+                id="savedToGoalCents"
+                type="number"
+                placeholder="e.g. 20034300"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <InputField
-          label="Current Savings Toward Goal"
-          name="savedToGoal"
-          value={formData.savedToGoal}
-          onChange={handleChange}
-          placeholder="e.g. 200"
-        />
+            <div className="grid gap-2">
+              <Label htmlFor="needsMonthlyCents" className="text-gray-700">
+                Needs Monthly (Cents)
+              </Label>
+              <Input
+                {...register("needsMonthlyCents", { required: true })}
+                id="needsMonthlyCents"
+                type="number"
+                placeholder="e.g. 100000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <InputField
-          label="Monthly Needs (Rent, Groceries, etc.)"
-          name="needs"
-          value={formData.needs}
-          onChange={handleChange}
-          placeholder="e.g. 1000"
-        />
+            <div className="grid gap-2">
+              <Label htmlFor="wantsMonthlyCents" className="text-gray-700">
+                Wants Monthly (Cents)
+              </Label>
+              <Input
+                {...register("wantsMonthlyCents", { required: true })}
+                id="wantsMonthlyCents"
+                type="number"
+                placeholder="e.g. 40000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <InputField
-          label="Monthly Wants (Entertainment, Shopping, etc.)"
-          name="wants"
-          value={formData.wants}
-          onChange={handleChange}
-          placeholder="e.g. 400"
-        />
+            <div className="grid gap-2">
+              <Label htmlFor="housingCents" className="text-gray-700">
+                Housing (Cents)
+              </Label>
+              <Input
+                {...register("housingCents")}
+                id="housingCents"
+                type="number"
+                placeholder="e.g. 50000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
 
-        <button
-          type="submit"
-          className="w-full bg-orange-400 text-black font-semibold py-2 rounded-xl hover:bg-orange-300 transition"
-        >
-          Save & Continue
-        </button>
-      </form>
+            <div className="grid gap-2">
+              <Label htmlFor="foodGroceriesCents" className="text-gray-700">
+                Food & Groceries (Cents)
+              </Label>
+              <Input
+                {...register("foodGroceriesCents")}
+                id="foodGroceriesCents"
+                type="number"
+                placeholder="e.g. 15000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="transportCents" className="text-gray-700">
+                Transport (Cents)
+              </Label>
+              <Input
+                {...register("transportCents")}
+                id="transportCents"
+                type="number"
+                placeholder="e.g. 10043424343200"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="utilitiesCents" className="text-gray-700">
+                Utilities (Cents)
+              </Label>
+              <Input
+                {...register("utilitiesCents")}
+                id="utilitiesCents"
+                type="number"
+                placeholder="e.g. 5000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="insuranceHealthCents" className="text-gray-700">
+                Health Insurance (Cents)
+              </Label>
+              <Input
+                {...register("insuranceHealthCents")}
+                id="insuranceHealthCents"
+                type="number"
+                placeholder="e.g. 2000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="personalShoppingCents" className="text-gray-700">
+                Personal Shopping (Cents)
+              </Label>
+              <Input
+                {...register("personalShoppingCents")}
+                id="personalShoppingCents"
+                type="number"
+                placeholder="e.g. 3000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="entertainmentEatingOutCents" className="text-gray-700">
+                Entertainment / Eating Out (Cents)
+              </Label>
+              <Input
+                {...register("entertainmentEatingOutCents")}
+                id="entertainmentEatingOutCents"
+                type="number"
+                placeholder="e.g. 4000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="subscriptionsCents" className="text-gray-700">
+                Subscriptions (Cents)
+              </Label>
+              <Input
+                {...register("subscriptionsCents")}
+                id="subscriptionsCents"
+                type="number"
+                placeholder="e.g. 154343200"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="miscFunCents" className="text-gray-700">
+                Misc Fun (Cents)
+              </Label>
+              <Input
+                {...register("miscFunCents")}
+                id="miscFunCents"
+                type="number"
+                placeholder="e.g. 3500"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="emergencyShortTermCents" className="text-gray-700">
+                Emergency / Short-term (Cents)
+              </Label>
+              <Input
+                {...register("emergencyShortTermCents")}
+                id="emergencyShortTermCents"
+                type="number"
+                placeholder="e.g. 1243432000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="longTermInvestingDebtCents" className="text-gray-700">
+                Long-term Investing / Debt (Cents)
+              </Label>
+              <Input
+                {...register("longTermInvestingDebtCents")}
+                id="longTermInvestingDebtCents"
+                type="number"
+                placeholder="e.g. 10000"
+                className="focus:ring-2 focus:ring-[#F46B2E] focus:border-[#F46B2E]"
+              />
+            </div>
+          </CardContent>
+
+          <CardFooter>
+            <Button
+              type="submit"
+              
+              className="w-full bg-[#F46B2E] hover:bg-[#e45e23] text-white font-semibold transition-all"
+            >
+              Save and Continue
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+      <Toaster />
     </main>
   );
 }
 
-function InputField({ label, name, value, onChange, placeholder }) {
-  return (
-    <label className="block">
-      <span className="block text-sm mb-1 text-orange-200">{label}</span>
-      <input
-        type="number"
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        min="0"
-        step="0.01"
-        className="w-full bg-orange-800 border border-orange-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-orange-300"
-      />
-    </label>
-  );
-}

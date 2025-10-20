@@ -4,6 +4,7 @@ import Homepage from './pages/Homepage'
 import SavingsOptions from './pages/SavingsOptions'
 import UserInfo from './pages/UserInfo'
 import Signup from './pages/SignUp'
+import Dashboard from './pages/Dashboard'
 function App() {
   return (
 // manages the navigation between pages inside the app. It allows the app to render different components based on the current URL.
@@ -12,6 +13,7 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/options" element={<SavingsOptions />} />
       <Route path="/userInfo" element={<UserInfo />} />
+     <Route path="/dashboard" element={<Dashboard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 
